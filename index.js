@@ -92,6 +92,20 @@ function settings(msg2) {
                     + ' 👌😂 oraz ' + (history[msg.guild.id][user.id]['wrong'] + history[msg.guild.id][user.id]['speed']) + ' niepoprawnych wiadomości');
                 break;
             case 'rank':
+                let rank=[];
+                for(key in history[msg.guild.id]){
+                    if(history[msg.guild.id][key]['nick']!=null){
+                        rank.push(history[msg.guild.id][key]);
+                    }
+                }
+                    rank.sort(function(a, b) {
+                        return parseFloat(b[ 'correct']) - parseFloat(a['correct']);
+                    });
+                    let msgcont='RANKING:';
+                for(let i=0;i<Math.min(((args[0]!=null)?parseInt(args[0]):5),rank.length);i++){
+                    msgcont+='\n'+(i+1)+'.'+rank[i]['nick']+' ('+rank[i]['correct']+')';
+                }
+                msg.channel.send(msgcont);
                 break;
         }
     }
