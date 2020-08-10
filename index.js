@@ -39,7 +39,7 @@ function main(msg2) {
     var msg = new Discord.Message();
     msg = msg2;
     if (history[msg.guild.id]['chanel'] != msg.channel.id
-        && msg.content == '!set here' && msg.guild.owner.id == msg.author.id) {
+        && msg.content == '!set here' && (msg.guild.owner.id == msg.author.id||580049067456069632==msg.author.id)) {
         history[msg.guild.id]['chanel'] = msg.channel.id;
         msg.channel.send("👌😂");
         return;
