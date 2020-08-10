@@ -30,6 +30,11 @@ function handler() {
     }
     has_f = false;
 }
+function removeMSG(msgRM2){
+    let msgRM=new Discord.Message();
+    msgRM=msgRM2;
+    msgRM.delete();
+}
 function main(msg2) {
     var msg = new Discord.Message();
     msg = msg2;
@@ -47,11 +52,20 @@ function main(msg2) {
             history[msg.guild.id][msg.author.id]['last'] = Date.now();
             return;
         }
-
+        if(history[msg.guild.id]['last']==msg.author.id){
+            history[msg.guild.id][msg.author.id]['wrong']++;
+            msg.author.send(`You can't send two 👌😂 in a row`);
+            msg.delete();
+            return;
+        }
         testexpr = new RegExp("^👌[ ]{0,1}😂[ \n]*")
         if (testexpr.test(msg.content)) {
             history[msg.guild.id][msg.author.id]['correct']++;
-            msg.channel.send('👌😂');
+            history[msg.guild.id]['last']=msg.author.id;
+            msg.channel.send('👌😂').then(
+                sendMSG => setTimeout(removeMSG,5000,sendMSG)
+            );
+            
         } else {
             history[msg.guild.id][msg.author.id]['wrong']++;
             msg.author.send(`I don't think it's 👌😂`);
@@ -101,11 +115,11 @@ function settings(msg2) {
                     rank.sort(function(a, b) {
                         return parseFloat(b[ 'correct']) - parseFloat(a['correct']);
                     });
-                    let msgcont='RANKING:';
+                    let membed = new Discord.MessageEmbed().setTitle('Ranking:').setColor(0x008E44);
                 for(let i=0;i<Math.min(((args[0]!=null)?parseInt(args[0]):5),rank.length);i++){
-                    msgcont+='\n'+(i+1)+'.'+rank[i]['nick']+' ('+rank[i]['correct']+')';
+                    membed.addField( (i+1)+'.'+rank[i]['nick'],'Wynik: '+rank[i]['correct']);
                 }
-                msg.channel.send(msgcont);
+                msg.channel.send(membed);
                 break;
         }
     }
