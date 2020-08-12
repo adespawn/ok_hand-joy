@@ -3,7 +3,7 @@ const client = new Discord.Client();
 const fs = require('fs');
 const auth = require('./auth.json');
 var history = new Map();
-var interval = 5000;
+var interval = 900000;
 var tasks = [];
 client.login(auth.discord);
 client.on('ready', () => {
@@ -30,16 +30,22 @@ function handler() {
     }
     has_f = false;
 }
-function removeMSG(msgRM2){
-    let msgRM=new Discord.Message();
-    msgRM=msgRM2;
+function removeMSG(msgRM2) {
+    let msgRM = new Discord.Message();
+    msgRM = msgRM2;
     msgRM.delete();
+}
+function rankingUpdate(messageID, msg, channelID) {
+    client.channels.fetch(channelID)
+    .then(channel =>channel.messages.fetch(messageID)
+            .then(message => message.edit(getRank(null, msg.guild.id)))
+            .catch(console.error)).catch(console.error);
 }
 function main(msg2) {
     var msg = new Discord.Message();
     msg = msg2;
     if (history[msg.guild.id]['chanel'] != msg.channel.id
-        && msg.content == '!set here' && (msg.guild.owner.id == msg.author.id||580049067456069632==msg.author.id)) {
+        && msg.content == '!set here' && (msg.guild.owner.id == msg.author.id || 580049067456069632 == msg.author.id)) {
         history[msg.guild.id]['chanel'] = msg.channel.id;
         msg.channel.send("👌😂");
         return;
@@ -52,20 +58,23 @@ function main(msg2) {
             history[msg.guild.id][msg.author.id]['last'] = Date.now();
             return;
         }
-        if(history[msg.guild.id]['last']==msg.author.id){
+        if (history[msg.guild.id]['last'] == msg.author.id) {
             history[msg.guild.id][msg.author.id]['wrong']++;
             msg.author.send(`You can't send two 👌😂 in a row`);
             msg.delete();
             return;
         }
-        testexpr = new RegExp("^👌[ ]{0,1}😂[ \n]*")
+        testexpr = new RegExp("^👌[ ]{0,1}😂[ \n]*$")
         if (testexpr.test(msg.content)) {
             history[msg.guild.id][msg.author.id]['correct']++;
-            history[msg.guild.id]['last']=msg.author.id;
+            history[msg.guild.id]['last'] = msg.author.id;
+            if (history[msg.guild.id]['rankingid'] != null) {
+                rankingUpdate(history[msg.guild.id]['rankingid'], msg, history[msg.guild.id]['chanelrank']);
+            }
             msg.channel.send('👌😂').then(
-                sendMSG => setTimeout(removeMSG,5000,sendMSG)
+                sendMSG => setTimeout(removeMSG, 5000, sendMSG)
             );
-            
+
         } else {
             history[msg.guild.id][msg.author.id]['wrong']++;
             msg.author.send(`I don't think it's 👌😂`);
@@ -76,6 +85,22 @@ function main(msg2) {
     fs.writeFile('./settings.set', JSON.stringify(history), function (err) {
         if (err) return console.log(err);
     });
+}
+function getRank(x, guildID) {
+    let rank = [];
+    for (key in history[guildID]) {
+        if (history[guildID][key]['nick'] != null) {
+            rank.push(history[guildID][key]);
+        }
+    }
+    rank.sort(function (a, b) {
+        return parseFloat(b['correct']) - parseFloat(a['correct']);
+    });
+    var membed = new Discord.MessageEmbed().setTitle('Ranking:').setColor(0x008E44);
+    for (let i = 0; i < Math.min(((x != null) ? parseInt(x) : rank.length), rank.length); i++) {
+        membed.addField((i + 1) + '.' + rank[i]['nick'], 'Wynik: ' + rank[i]['correct']);
+    }
+    return membed;
 }
 function settings(msg2) {
     var msg = new Discord.Message();
@@ -106,20 +131,23 @@ function settings(msg2) {
                     + ' 👌😂 oraz ' + (history[msg.guild.id][user.id]['wrong'] + history[msg.guild.id][user.id]['speed']) + ' niepoprawnych wiadomości');
                 break;
             case 'rank':
-                let rank=[];
-                for(key in history[msg.guild.id]){
-                    if(history[msg.guild.id][key]['nick']!=null){
-                        rank.push(history[msg.guild.id][key]);
-                    }
-                }
-                    rank.sort(function(a, b) {
-                        return parseFloat(b[ 'correct']) - parseFloat(a['correct']);
-                    });
-                    let membed = new Discord.MessageEmbed().setTitle('Ranking:').setColor(0x008E44);
-                for(let i=0;i<Math.min(((args[0]!=null)?parseInt(args[0]):5),rank.length);i++){
-                    membed.addField( (i+1)+'.'+rank[i]['nick'],'Wynik: '+rank[i]['correct']);
-                }
+                let membed = new Discord.MessageEmbed();
+                membed = getRank(args[0], msg.guild.id);
                 msg.channel.send(membed);
+                break;
+            case 'globalrank':
+                if (!(msg.guild.owner.id == msg.author.id || 580049067456069632 == msg.author.id)) break;
+                /*if (history[msg.guild.id]['rankingid'] != null) {
+                    msg.channel.messages.fetch(history[msg.guild.id]['rankingid'])
+                        .then(message => message.delete())
+                        .catch(console.error);
+                }*/
+                history[msg.guild.id]['chanelrank'] = msg.channel.id;
+                var xdd;
+                msg.channel.send(getRank(null,msg.guild.id))
+                    .then(message => {history[msg.guild.id]['rankingid']=message.id;})
+                    .catch(console.error);
+                //rankingUpdate(history[msg.guild.id]['rankingid'],msg);
                 break;
         }
     }
@@ -129,6 +157,7 @@ client.on('message', msg => {
     /*Premisje*/
     //console.log(msg.member.roles.cache.some(role=>(role.permissions>>>3)%2===1));
     /*koniec*/
+    //console.log(history[msg.guild.id]['rankingid']);
     if (msg.guild == null) {
         return;
     }
