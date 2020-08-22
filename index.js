@@ -55,7 +55,7 @@ function main(msg2) {
             msg.author.send('Jesteś za szybki!');
             msg.delete();
             history[msg.guild.id][msg.author.id]['speed']++;
-            history[msg.guild.id][msg.author.id]['last'] = Date.now();
+            //history[msg.guild.id][msg.author.id]['last'] = Date.now();
             return;
         }
         if (history[msg.guild.id]['last'] == msg.author.id) {
@@ -68,6 +68,7 @@ function main(msg2) {
         if (testexpr.test(msg.content)) {
             history[msg.guild.id][msg.author.id]['correct']++;
             history[msg.guild.id]['last'] = msg.author.id;
+            history[msg.guild.id][msg.author.id]['last'] = Date.now();
             if (history[msg.guild.id]['rankingid'] != null) {
                 rankingUpdate(history[msg.guild.id]['rankingid'], msg, history[msg.guild.id]['chanelrank']);
             }
@@ -80,7 +81,7 @@ function main(msg2) {
             msg.author.send(`I don't think it's 👌😂`);
             msg.delete();
         }
-        history[msg.guild.id][msg.author.id]['last'] = Date.now();
+        
     }
     fs.writeFile('./settings.set', JSON.stringify(history), function (err) {
         if (err) return console.log(err);
