@@ -60,7 +60,7 @@ function main(msg2) {
         }
         if (history[msg.guild.id]['last'] == msg.author.id) {
             history[msg.guild.id][msg.author.id]['wrong']++;
-            msg.author.send(`You can't send two 👌😂 in a row`);
+            msg.author.send(`Nie możesz wysłać dwóch 👌😂 pod rząd`);
             msg.delete();
             return;
         }
@@ -78,7 +78,7 @@ function main(msg2) {
 
         } else {
             history[msg.guild.id][msg.author.id]['wrong']++;
-            msg.author.send(`I don't think it's 👌😂`);
+            msg.author.send(`Nie wydaje mni się żeby to było 👌😂`);
             msg.delete();
         }
         
