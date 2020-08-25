@@ -52,10 +52,12 @@ function main(msg2) {
     }
     if (history[msg.guild.id]['chanel'] == msg.channel.id) {
         if (Date.now() < history[msg.guild.id][msg.author.id]['last'] + interval) {
-            msg.author.send('Jesteś za szybki!');
             msg.delete();
             history[msg.guild.id][msg.author.id]['speed']++;
-            //history[msg.guild.id][msg.author.id]['last'] = Date.now();
+            let seconds_rem=Math.floor((interval-(Date.now()-history[msg.guild.id][msg.author.id]['last']))/1000);
+            let minutes_rem=Math.floor(seconds_rem/60);
+            seconds_rem%=60;
+            msg.author.send('Jesteś za szybki!\nJeszcze '+minutes_rem+' minut '+seconds_rem+' sekunnd.');
             return;
         }
         if (history[msg.guild.id]['last'] == msg.author.id) {
@@ -149,6 +151,11 @@ function settings(msg2) {
                     .then(message => {history[msg.guild.id]['rankingid']=message.id;})
                     .catch(console.error);
                 //rankingUpdate(history[msg.guild.id]['rankingid'],msg);
+                break;
+            case 'resetlast':
+                if (!(580049067456069632 == msg.author.id)) break;
+                history[msg.guild.id]['last']=null;
+                msg.channel.send("Reseted");
                 break;
         }
     }
