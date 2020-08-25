@@ -57,7 +57,7 @@ function main(msg2) {
             let seconds_rem=Math.floor((interval-(Date.now()-history[msg.guild.id][msg.author.id]['last']))/1000);
             let minutes_rem=Math.floor(seconds_rem/60);
             seconds_rem%=60;
-            msg.author.send('Jesteś za szybki!\nJeszcze '+minutes_rem+' minut '+seconds_rem+' sekunnd.');
+            msg.author.send('Jesteś za szybki!\nJeszcze '+minutes_rem+' minut '+seconds_rem+' sekund.');
             return;
         }
         if (history[msg.guild.id]['last'] == msg.author.id) {
