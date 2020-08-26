@@ -7,7 +7,7 @@ module.exports = {
         return result;
     },
     validate: function (response, id) {
-        if (response != null) {
+        if (response.length == 1) {
             return true;
         }
         else {
