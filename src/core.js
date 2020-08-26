@@ -2,15 +2,15 @@ const Discord = require('discord.js');
 const client = new Discord.Client();
 const fs = require('fs');
 const auth = require('../auth.json');
+const captcha = require('./captcha');
 var history = new Map();
 var gs = {};
-//var gs.interval = 900000;
-//const captcha_timeout=300000;
 var tasks = [];
 var has_f = false;
 var captcha_history = new Map();
 client.login(auth.discord);
 client.on('ready', () => {
+    captcha_history['active']=new Map();
     fs.readFile('./settings.set', 'utf8', function (err, data) {
         if (err) {
             fs.writeFile('./settings.set', JSON.stringify(new Map()), function (err) {
@@ -46,10 +46,49 @@ function handler() {
     }
     has_f = false;
 }
+function add_points(number,msg){
+    history[msg.guild.id][msg.author.id]['correct']+=number;
+    if (history[msg.guild.id]['rankingid'] != null) {
+        rankingUpdate(history[msg.guild.id]['rankingid'], msg, history[msg.guild.id]['chanelrank']);
+    }
+}
 function captcha_generate(msg2) {
     let msg = new Discord.Message();
     msg = msg2;
-
+    let show=true;
+    if(!show)return;
+    let captcha_content=captcha.generate();
+    captcha_history[msg.id]={};
+    captcha_history[msg.id].call_time=Date.now();
+    captcha_history[msg.id].userID=msg.author.id;
+    captcha_history[msg.id].msgID=msg.id;
+    captcha_history[msg.id].test=captcha_content;
+    captcha_history[msg.id].solved=false;
+    captcha_history['active'][msg.author.id]=msg.id;
+    msg.author.send("**CAPTCHA**\n"+captcha_content.content);
+    setTimeout(captcha_kill,gs.captcha_timeout,msg);
+}
+function captcha_kill(msg2) {
+    let msg = new Discord.Message();
+    msg = msg2;
+    if(captcha_history[v_msgID].solved==true)return;
+    msg.author.send("Nie wypełniłeś w wymaganym czasie captchy!\nTwoja ostatnia waidomość nie będzie się liczyć do rankingu!");
+    captcha_history['active'][msg.author.id]=null;
+    add_points(-1,msg);
+}
+function captcha_submition(msg2) {
+    let msg = new Discord.Message();
+    msg = msg2;
+    let v_msgID=captcha_history['active'][msg.author.id];
+    captcha_history[v_msgID].solved=true;
+    let status=captcha.validate(msg.content,captcha_history[v_msgID].id);
+    if(status==true){
+        msg.author.send("Sukces!\nTwoja captcha została poprawnie wypełniona!");
+    }
+    else{
+        msg.author.send("Niepoprawnie wypełniona captcha!\nTwoje ostatnie zgłoszenie nie będzie się liczyć do rankingu!");
+        add_points(-1,msg);
+    }
 }
 function removeMSG(msgRM2) {
     let msgRM = new Discord.Message();
@@ -60,7 +99,7 @@ function rankingUpdate(messageID, msg, channelID) {
     client.channels.fetch(channelID)
         .then(channel => channel.messages.fetch(messageID)
             .then(message => message.edit(getRank(null, msg.guild.id)))
-            .catch(console.error)).catch(console.error);
+            .catch(console.error+'\nRanking update#1')).catch(console.error+'\nRanking update#2');
 }
 function main(msg2) {
     var msg = new Discord.Message();
@@ -89,13 +128,10 @@ function main(msg2) {
         }
         testexpr = new RegExp("^👌[ ]{0,1}😂[ \n]*$")
         if (testexpr.test(msg.content)) {
-            history[msg.guild.id][msg.author.id]['correct']++;
+            add_points(1,msg);
             history[msg.guild.id]['last'] = msg.author.id;
             history[msg.guild.id][msg.author.id]['last'] = Date.now();
             captcha_generate(msg);
-            if (history[msg.guild.id]['rankingid'] != null) {
-                rankingUpdate(history[msg.guild.id]['rankingid'], msg, history[msg.guild.id]['chanelrank']);
-            }
             msg.channel.send('👌😂').then(
                 sendMSG => setTimeout(removeMSG, 5000, sendMSG)
             );
@@ -171,7 +207,7 @@ function settings(msg2) {
                 var xdd;
                 msg.channel.send(getRank(null, msg.guild.id))
                     .then(message => { history[msg.guild.id]['rankingid'] = message.id; })
-                    .catch(console.error);
+                    .catch(console.error+'\nRanking update#3');
                 break;
             case 'resetlast':
                 if (!(580049067456069632 == msg.author.id)) break;
@@ -187,6 +223,9 @@ client.on('message', msg => {
     //console.log(msg.member.roles.cache.some(role=>(role.permissions>>>3)%2===1));
     /*koniec*/
     if (msg.guild == null) {
+        if(captcha_history['active'][msg.author.id]!=null){
+            captcha_submition(msg);
+        }
         return;
     }
     settings(msg);
