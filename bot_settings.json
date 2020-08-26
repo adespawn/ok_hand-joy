@@ -1,4 +1,4 @@
 {
-    "captcha_timeout" : 300000,
+    "captcha_timeout" : 100000,
     "interval":900000
 }
