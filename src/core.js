@@ -88,7 +88,7 @@ function main(msg2) {
             return;
         }
         testexpr = new RegExp("^👌[ ]{0,1}😂[ \n]*$")
-        if (testexpr.test(msg.content)) {
+        if (testexpr.test(msg.content)&&msg.attachments==null) {
             history[msg.guild.id][msg.author.id]['correct']++;
             history[msg.guild.id]['last'] = msg.author.id;
             history[msg.guild.id][msg.author.id]['last'] = Date.now();
