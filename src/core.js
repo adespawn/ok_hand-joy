@@ -87,8 +87,9 @@ function main(msg2) {
             msg.delete();
             return;
         }
-        testexpr = new RegExp("^👌[ ]{0,1}😂[ \n]*$")
-        if (testexpr.test(msg.content)&&msg.attachments.length<2) {
+        testexpr = new RegExp("^👌[ ]{0,1}😂[ \n]*$");
+        console.log(msg.attachments.length);
+        if (testexpr.test(msg.content)&&msg.attachments) {
             history[msg.guild.id][msg.author.id]['correct']++;
             history[msg.guild.id]['last'] = msg.author.id;
             history[msg.guild.id][msg.author.id]['last'] = Date.now();
