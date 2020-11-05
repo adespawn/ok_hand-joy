@@ -60,7 +60,7 @@ function removeMSG(msgRM2) {
 function rankingUpdate(messageID, msg, channelID) {
     client.channels.fetch(channelID)
         .then(channel => channel.messages.fetch(messageID)
-            .then(message => message.edit(getRank(null, msg.guild.id)))
+            .then(message => message.edit(getRanking(null, msg.guild.id)))
             .catch(console.error)).catch(console.error);
 }
 function main(msg2) {
@@ -79,7 +79,7 @@ function main(msg2) {
             let seconds_rem = Math.floor((gs.interval - (Date.now() - history[msg.guild.id][msg.author.id]['last'])) / 1000);
             let minutes_rem = Math.floor(seconds_rem / 60);
             seconds_rem %= 60;
-            msg.author.send('Jesteś za szybki!\nJeszcze ' + minutes_rem + ' minut ' + seconds_rem + ' sekund.');
+            msg.author.send('Jesteś za szybki!\nJeszcze ' + minutes_rem + ' minut ' + seconds_rem + ' sekund.');``
             return;
         }
         if (history[msg.guild.id]['last'] == msg.author.id) {
@@ -112,7 +112,7 @@ function main(msg2) {
         if (err) return console.log(err);
     });
 }
-function getRank(x, guildID) {
+function getRanking(x, guildID) {
     let rank = [];
     for (key in history[guildID]) {
         if (history[guildID][key]['nick'] != null) {
@@ -124,6 +124,7 @@ function getRank(x, guildID) {
     });
     var membed = new Discord.MessageEmbed().setTitle('Ranking:').setColor(0x008E44);
     for (let i = 0; i < Math.min(((x != null) ? parseInt(x) : rank.length), rank.length); i++) {
+        if(rank[i]['correct']==0)break;
         membed.addField((i + 1) + '.' + rank[i]['nick'], 'Wynik: ' + rank[i]['correct']);
     }
     return membed;
@@ -158,7 +159,7 @@ function settings(msg2) {
                 break;
             case 'rank':
                 let membed = new Discord.MessageEmbed();
-                membed = getRank(args[0], msg.guild.id);
+                membed = getRanking(args[0], msg.guild.id);
                 msg.channel.send(membed);
                 break;
             case 'globalrank':
@@ -170,7 +171,7 @@ function settings(msg2) {
                 }*/
                 history[msg.guild.id]['chanelrank'] = msg.channel.id;
                 var xdd;
-                msg.channel.send(getRank(null, msg.guild.id))
+                msg.channel.send(getRanking(null, msg.guild.id))
                     .then(message => { history[msg.guild.id]['rankingid'] = message.id; })
                     .catch(console.error);
                 break;
