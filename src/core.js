@@ -32,8 +32,8 @@ client.on('ready', () => {
             return console.log('❌ ' + err);
         }
         var temp = JSON.parse(data);
-        gs.interval=parseInt(temp['interval']);
-        gs.captcha_timeout=parseInt(temp['captcha_timeout']);
+        gs.interval = parseInt(temp['interval']);
+        gs.captcha_timeout = parseInt(temp['captcha_timeout']);
         console.log('✅ wczytano ustawienia bota');
     });
 });
@@ -79,7 +79,7 @@ function main(msg2) {
             let seconds_rem = Math.floor((gs.interval - (Date.now() - history[msg.guild.id][msg.author.id]['last'])) / 1000);
             let minutes_rem = Math.floor(seconds_rem / 60);
             seconds_rem %= 60;
-            msg.author.send('Jesteś za szybki!\nJeszcze ' + minutes_rem + ' minut ' + seconds_rem + ' sekund.');``
+            msg.author.send('Jesteś za szybki!\nJeszcze ' + minutes_rem + ' minut ' + seconds_rem + ' sekund.'); ``
             return;
         }
         if (history[msg.guild.id]['last'] == msg.author.id) {
@@ -89,7 +89,7 @@ function main(msg2) {
             return;
         }
         testexpr = new RegExp("^👌[ ]{0,1}😂[ \n]*$");
-        if (testexpr.test(msg.content)&&msg.attachments.size==0) {
+        if (testexpr.test(msg.content) && msg.attachments.size == 0) {
             history[msg.guild.id][msg.author.id]['correct']++;
             history[msg.guild.id]['last'] = msg.author.id;
             history[msg.guild.id][msg.author.id]['last'] = Date.now();
@@ -124,7 +124,7 @@ function getRanking(x, guildID) {
     });
     var membed = new Discord.MessageEmbed().setTitle('Ranking:').setColor(0x008E44);
     for (let i = 0; i < Math.min(((x != null) ? parseInt(x) : rank.length), rank.length); i++) {
-        if(rank[i]['correct']==0)break;
+        if (rank[i]['correct'] == 0) break;
         membed.addField((i + 1) + '.' + rank[i]['nick'], 'Wynik: ' + rank[i]['correct']);
     }
     return membed;
@@ -138,7 +138,7 @@ function settings(msg2) {
     if (history[msg.guild.id][msg.author.id]['wrong'] == null) history[msg.guild.id][msg.author.id]['wrong'] = 0;
     if (history[msg.guild.id][msg.author.id]['speed'] == null) history[msg.guild.id][msg.author.id]['speed'] = 0;
     if (history[msg.guild.id][msg.author.id]['last'] == null) history[msg.guild.id][msg.author.id]['last'] = 0;
-    history[msg.guild.id][msg.author.id]['nick'] = msg.author.username;
+    history[msg.guild.id][msg.author.id]['nick'] = msg.member.nickname;
     if (msg.content.startsWith('!') && history[msg.guild.id]['chanel'] != msg.channel.id) {
         var args = msg.content.substring(1).split(' ');
         var cmd = args[0].toLowerCase();
@@ -164,11 +164,6 @@ function settings(msg2) {
                 break;
             case 'globalrank':
                 if (!(msg.guild.owner.id == msg.author.id || 580049067456069632 == msg.author.id)) break;
-                /*if (history[msg.guild.id]['rankingid'] != null) {
-                    msg.channel.messages.fetch(history[msg.guild.id]['rankingid'])
-                        .then(message => message.delete())
-                        .catch(console.error);
-                }*/
                 history[msg.guild.id]['chanelrank'] = msg.channel.id;
                 var xdd;
                 msg.channel.send(getRanking(null, msg.guild.id))
