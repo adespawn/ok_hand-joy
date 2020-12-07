@@ -2,11 +2,8 @@ const Discord = require('discord.js');
 const client = new Discord.Client();
 const fs = require('fs');
 const auth = require('../auth.json');
-const { isNullOrUndefined } = require('util');
 var history = new Map();
 var gs = {};
-//var gs.interval = 900000;
-//const captcha_timeout=300000;
 var tasks = [];
 var has_f = false;
 var captcha_history = new Map();
@@ -79,7 +76,7 @@ function main(msg2) {
             let seconds_rem = Math.floor((gs.interval - (Date.now() - history[msg.guild.id][msg.author.id]['last'])) / 1000);
             let minutes_rem = Math.floor(seconds_rem / 60);
             seconds_rem %= 60;
-            msg.author.send('Jesteś za szybki!\nJeszcze ' + minutes_rem + ' minut ' + seconds_rem + ' sekund.'); ``
+            msg.author.send(`Jesteś za szybki!\nJeszcze ${(minutes_rem>0)?(minutes_rem+ ' minut '):''}${seconds_rem} sekund.`); 
             return;
         }
         if (history[msg.guild.id]['last'] == msg.author.id) {
@@ -125,7 +122,7 @@ function getRanking(x, guildID) {
     var membed = new Discord.MessageEmbed().setTitle('Ranking:').setColor(0x008E44);
     for (let i = 0; i < Math.min(((x != null) ? parseInt(x) : rank.length), rank.length); i++) {
         if (rank[i]['correct'] == 0) break;
-        membed.addField((i + 1) + '.' + rank[i]['nick'], 'Wynik: ' + rank[i]['correct']);
+        membed.addField(`${(i + 1)}.${((rank[i]['nick'][0]==':')?'\\':'')}${rank[i]['nick']}`, `Wynik: ${rank[i]['correct']}`);
     }
     return membed;
 }
@@ -146,16 +143,16 @@ function settings(msg2) {
         switch (cmd) {
             case 'user':
                 let user = msg.mentions.members.first();
+                let person = msg.mentions.members.first().user;
                 if (user == null) {
-                    msg.channel.send('nie istnieje');
+                    msg.channel.send(`Nie wskazałeś użytkownika`);
                     break;
                 }
                 if (history[msg.guild.id][user.id] == null) {
-                    msg.channel.send(user.username + ' nic nie wysłał');
+                    msg.channel.send(`${(user.nickname!=null&&user.nickname!=person.username)?user.nickname+' ('+person.username+')':person.username} nic nie wysłał`);
                     break;
                 }
-                msg.channel.send(history[msg.guild.id][user.id]['nick'] + ' wysłał ' + history[msg.guild.id][user.id]['correct']
-                    + ' 👌😂 oraz ' + (history[msg.guild.id][user.id]['wrong'] + history[msg.guild.id][user.id]['speed']) + ' niepoprawnych wiadomości');
+                msg.channel.send(`${history[msg.guild.id][user.id]['nick']} wysłał ${history[msg.guild.id][user.id]['correct']} 👌😂 oraz ${(history[msg.guild.id][user.id]['wrong'] + history[msg.guild.id][user.id]['speed'])} niepoprawnych wiadomości`);
                 break;
             case 'rank':
                 let membed = new Discord.MessageEmbed();
@@ -170,10 +167,18 @@ function settings(msg2) {
                     .then(message => { history[msg.guild.id]['rankingid'] = message.id; })
                     .catch(console.error);
                 break;
-            case '  ':
-                if (!(580049067456069632 == msg.author.id)) break;
+            case 'resetlast':
+                if (!(580049067456069632 == msg.author.id)) {
+                    msg.channel.send(`Admin only command`).then(
+                        sendMSG => setTimeout(removeMSG, 5000, sendMSG)
+                    );
+                    break;
+                }
                 history[msg.guild.id]['last'] = null;
-                msg.channel.send("Reseted");
+                msg.channel.send(`Reseted`).then(
+                    sendMSG => setTimeout(removeMSG, 5000, sendMSG)
+                );
+                setTimeout(removeMSG, 5000, msg)
                 break;
         }
     }
