@@ -89,7 +89,7 @@ function main(msg2) {
             return;
         }
         testexpr = new RegExp("^👌[ ]{0,1}😂[ \n]*$");
-        if (testexpr.test(msg.content) && msg.attachments.size == 0) {
+        if (testexpr.test(msg.content) && msg.attachments.size == 0 && msg.reference == null) {
             history[msg.guild.id][msg.author.id]['correct']++;
             history[msg.guild.id]['last'] = msg.author.id;
             history[msg.guild.id][msg.author.id]['last'] = Date.now();
@@ -170,7 +170,7 @@ function settings(msg2) {
                     .then(message => { history[msg.guild.id]['rankingid'] = message.id; })
                     .catch(console.error);
                 break;
-            case 'resetlast':
+            case '  ':
                 if (!(580049067456069632 == msg.author.id)) break;
                 history[msg.guild.id]['last'] = null;
                 msg.channel.send("Reseted");
